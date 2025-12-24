@@ -12,7 +12,7 @@ local HOP_DELAY = 3
 local CONFIG_CHECK_INTERVAL = 30
 
 -- Filter Settings
-local MIN_MS_FILTER = 2000000
+local MIN_MS_FILTER = 1
 local MAX_MS_FILTER = 999999999999
 local AUTO_HOP_ENABLED = true
 local lastConfigCheck = 0
