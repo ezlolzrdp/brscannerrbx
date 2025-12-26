@@ -8,7 +8,7 @@ local WEBHOOK_URL = "https://discord.com/api/webhooks/1452120328364101693/XSaMuA
 local CONTROL_WEBHOOK_URL = "https://discord.com/api/webhooks/1452120328364101693/XSaMuA_dNl_GShp3ONOOEmNnkakZeMctfvyKXVV-hJDxgK8H6ZTUoCApFxBw4Nzbo5_8"
 local GLOBAL_CONFIG_KEY = "brainrot_scanner_global_config"
 local USER_SETTINGS_KEY = "brainrot_scanner_user_settings_"
-local HOP_DELAY = 3
+local HOP_DELAY = 7
 local CONFIG_CHECK_INTERVAL = 30
 
 -- Filter Settings
