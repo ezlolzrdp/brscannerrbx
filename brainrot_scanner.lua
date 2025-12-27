@@ -10,7 +10,7 @@ local DEBUG_MODE = true
 -- M/s Filter Settings (EDIT THESE)
 local MIN_MS_FILTER = 0
 local MAX_MS_FILTER = math.huge
-local AUTO_SCAN_ON_JOIN = false
+local AUTO_SCAN_ON_JOIN = true
 
 -- ========================================
 -- INSERT YOUR BRAINROT NAMES LIST HERE
