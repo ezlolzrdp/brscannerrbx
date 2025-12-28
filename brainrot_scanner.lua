@@ -9,7 +9,7 @@ local HOP_DELAY = 2
 local DEBUG_MODE = true
 
 -- /s Filter Settings (EDIT THESE) - Note: these are in /s not m/s!
-local MIN_FILTER = 70000000 -- Minimum /s value (e.g., 100 = 100/s)
+local MIN_FILTER = 50000000 -- Minimum /s value (e.g., 100 = 100/s)
 local MAX_FILTER = math.huge  -- Maximum /s value
 local AUTO_SCAN_ON_JOIN = true
 
