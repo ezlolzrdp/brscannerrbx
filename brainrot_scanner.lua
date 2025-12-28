@@ -1,23 +1,27 @@
 -- ====================================
--- BRAINROT SCANNER - CLEAN VERSION
+-- BRAINROT SCANNER - DUAL WEBHOOK VERSION
 -- ====================================
 
 -- Configuration
-local WEBHOOK_URL = "https://discord.com/api/webhooks/1452120328364101693/XSaMuA_dNl_GShp3ONOOEmNnkakZeMctfvyKXVV-hJDxgK8H6ZTUoCApFxBw4Nzbo5_8"
+local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1452120328364101693/XSaMuA_dNl_GShp3ONOOEmNnkakZeMctfvyKXVV-hJDxgK8H6ZTUoCApFxBw4Nzbo5_8"
+local REPLIT_WEBHOOK_URL = "https://nodejs--bugpvpalt.replit.app/webhook"
 local HOP_DELAY = 2
 local DEBUG_MODE = true
 
--- M/s Filter Settings (EDIT THESE)
-local MIN_MS_FILTER = 0
-local MAX_MS_FILTER = math.huge
+-- /s Filter Settings (EDIT THESE) - Note: these are in /s not m/s!
+local MIN_FILTER = 70000000 -- Minimum /s value (e.g., 100 = 100/s)
+local MAX_FILTER = math.huge  -- Maximum /s value
 local AUTO_SCAN_ON_JOIN = true
+
+-- Server hop settings
+local MIN_PLAYERS_IN_SERVER = 2  -- Don't join servers with less than this many players
+local MAX_VISITED_SERVERS = 50   -- Remember this many visited servers
 
 -- ========================================
 -- INSERT YOUR BRAINROT NAMES LIST HERE
 -- ========================================
--- Format: "Noobini Pizzanini", "Lirili Larila",
 local BRAINROT_NAMES = {
-    "Noobini Pizzanini", "Lirili Larila", "Tim Cheese", "Fluriflura", "Talpa Di Fero", "Noobini Santanini", "Svinina Bombardino", "Raccooni Jandelini", "Pipi Kiwi", "Tartaragno", "Pipi Corni", "Trippi Troppi", "Tung Tung Tung Sahur", "Gangster Footera", "Bandito Bobritto", "Boneca Ambalabu", "Cacto Hipopotamo", "Ta Ta Ta Ta Sahur", "Tric Trac Baraboom", "Frogo Elgo", "Pipi Avocado", "Cupcake Koala", "Pinealotto Fruttarino", "Cappuccino Assassino", "Bandito Axolito", "Brr Brr Patapim", "Avocadini Antilopini", "Trulimero Trulicina", "Bambini Crostini", "Malame Amarele", "Bananita Dolphinita", "Perochello Lemonchello", "Brri Brri Bicus Dicus Bombicus", "Avocadini Guffo", "Ti Ti Ti Sahur", "Mangolini Parrocini", "Frogato Pirato", "Salamino Penguino", "Doi Doi Do", "Penguin Tree", "Wombo Rollo", "Penguino Cocosino", "Mummio Rappitto", "Burbaloni Loliloli", "Chimpanzini Bananini", "Tirilikalika Tirilikalako", "Ballerina Cappuccina", "Chef Crabracadabra", "Lionel Cactuseli", "Glorbo Fruttodrillo", "Quivioli Ameleonni", "Blueberrinni Octopusini", "Clickerino Crabo", "Caramello Filtrello", "Pipi Potato", "Strawberrelli Flamingelli", "Cocosini Mama", "Pandaccini Bananini", "Quackula", "Pi Pi Watermelon", "Signore Carapace", "Sigma Boy", "Sigma Girl", "Chocco Bunny", "Puffaball", "Sealo Regalo", "Buho de Fuego", "Frigo Camelo", "Orangutini Ananassini", "Rhino Toasterino", "Bombardiro Crocodilo", "Brutto Gialutto", "Spioniro Golubiro", "Bombombini Gusini", "Zibra Zubra Zibralini", "Tigrilini Watermelini", "Avocadorilla", "Cavallo Virtuoso", "Te Te Te Sahur", "Gorillo Subwoofero", "Gorillo Watermelondrillo", "Stoppo Luminino", "Tracoducotulu Delapeladustuz", "Tob Tobi Tobi", "Lerulerulerule", "Ganganzelli Trulala", "Magi Ribbitini", "Rhino Helicopterino", "Jingle Jingle Sahur", "Los Noobinis", "Cachorrito Melonito", "Carloooo", "Elefanto Frigo", "Carrotini Brainini", "Centrucci Nuclucci", "Toiletto Focaccino", "Jacko Spaventosa", "Bananito Bandito", "Tree Tree Tree Sahur", "Cocofanto Elefanto", "Antonio", "Girafa Celestre", "Gattatino Nyanino", "Gattatino Neonino", "Chihuanini Taconini", "Matteo", "Tralalero Tralala", "Los Crocodillitos", "Tigroligre Frutonni", "Odin Din Din Dun", "Orcalero Orcala", "Money Money Man", "Alessio", "Unclito Samito", "Statutino Libertino", "Tipi Topi Taco", "Tralalita Tralala", "Tukanno Banana", "Extinct Ballerina", "Vampira Cappucina", "Espresso Signora", "Trenozosturzzo Turbo 3000", "Bulbito Bandito Traktorito", "Urubini Flamenguini", "Jacko Jack Jack", "Trippi Troppi Troppa Trippa", "Capi Taco", "Los Chihuaninis", "Gattito Tacoto", "Las Capuchinas", "Ballerino Lololo", "Los Tungtungtungcitos", "Pakrahmatmamat", "Ballerina Peppermintina", "Piccione Macchina", "Pakrahmatmatina", "Los Bombinitos", "Tractoro Dinosauro", "Brr Es Teh Patipum", "Cacasito Satalito", "Orcalita Orcala", "Aquanaut", "Tartaruga Cisterna", "Snailenzo", "Corn Corn Corn Sahur", "Squalanana", "Mummy Ambalabu", "Los Orcalitos", "Dug Dug Dug", "Ginger Globo", "Yeti Claus", "Crabbo Limonetta", "Los Tipi Tacos", "Granchiello Spiritell", "Frio Ninja", "Piccionetta Macchina", "Mastodontico Telepiedone", "Los Gattitos", "Bambu Bambu Sahur", "Chrismasmamat", "Anpali Babel", "Cappuccino Clownino", "Bombardini Tortinii", "Brasilini Berimbini", "Belula Beluga", "Krupuk Pagi Pagi", "Skull Skull Skull", "Cocoa Assassino", "Tentacolo Tecnico", "Ginger Cisterna", "Pop Pop Sahur", "Noo La Polizia", "La Vacca Saturno Saturnita", "Pandanini Frostini", "Bisonte Giuppitere", "Blackhole Goat", "Jackorilla", "Agarrini La Palini", "Chachechi", "Karkerkar Kurkur", "Los Tortus", "Los Matteos", "Sammyni Spyderini", "Trenostruzzo Turbo 4000", "Chimpanzini Spiderini", "Boatito Auratito", "Fragola La La La", "Dul Dul Dul", "La Vacca Prese Presente", "Frankentteo", "Karker Sahur", "Torrtuginni Dragonfrutini", "Los Tralaleritos", "Zombie Tralala", "La Cucaracha", "Vulturino Skeletono", "Guerriro Digitale", "Extinct Tralalero", "Yess My Examine", "Extinct Matteo", "Las Tralaleritas", "Reindeer Tralala", "Las Vaquitas Saturnitas", "Pumpkin Spyderini", "Job Job Job Sahur", "Los Karkeritos", "Graipuss Medussi", "Santteo", "La Vacca Jacko Linterino", "Triplito Tralaleritos", "Trickolino", "Giftini Spyderini", "Los Spyderinis", "Perrito Burrito", "1x1x1x1", "Los Cucarachas", "Please My Present", "Cuadramat and Pakrahmatmamat", "Los Jobcitos", "Nooo My Hotspot", "Pot Hotspot", "Noo My Examine", "Telemorte", "La Sahur Combinasion", "List List List Sahur", "To To To Sahur", "Pirulitoita Bicicletaire", "25", "Santa Hotspot", "Horegini Boom", "Quesadilla Crocodila", "Pot Pumpkin", "Naughty Naughty", "Ho Ho Ho Sahur", "Chicleteira Bicicleteira", "Spaghetti Tualetti", "Esok Sekolah", "Quesadillo Vampiro", "Burrito Bandito", "Chicleteirina Bicicleteirina", "Los Quesadillas", "Noo My Candy", "Los Nooo My Hotspotsitos", "La Grande Combinassion", "Rang Ring Bus", "Guest 666", "Los Chicleteiras", "67", "Mariachi Corazoni", "Los Burritos", "Los 25", "Swag Soda", "Chimnino", "Los Combinasionas", "Chicleteira Noelteira", "Fishino Clownino", "Tacorita Bicicleta", "Nuclearo Dinosauro", "Las Sis", "La Karkerkar Combinasion", "Chillin Chili", "Chipso and Queso", "Money Money Puggy", "Celularcini Viciosini", "Los Planitos", "Los Mobilis", "Los 67", "Mieteteira Bicicleteira", "La Spooky Grande", "Los Spooky Combinasionas", "Los Candies", "Los Hotspositos", "Los Puggies", "W or L", "Tralalalaledon", "La Extinct Grande Combinasion", "Tralaledon", "La Jolly Grande", "Los Primos", "Eviledon", "Los Tacoritas", "Tang Tang Kelentang", "Ketupat Kepat", "Los Bros", "Tictac Sahur", "La Supreme Combinasion", "Gingerat Gerat", "Orcaledon", "Ketchuru and Masturu", "Garama and Madundung", "Festive 67", "La Ginger Sekolah", "Spooky and Pumpky", "Lavadorito Spinito", "Los Spaghettis", "La Casa Boo", "Fragrama and Chocrama", "La Secret Combinasion", "Reinito Sleighito", "Burguro and Fryuro", "Dragon Cannelloni", "Cooki and Milki", "Capitano Moby", "Headless Horseman", "Strawberry Elephant", "Meowl", "2", "6", "Admin Lucky Block", "Brainrot God", "Brainrot God Lucky Block", "Brainrot Trader", "Ice Dragon", "John Pork", "Christmas Brainrots", "Festive Lucky Block", "Arachnid Family", "Combinasions Family", "Karkerkur Family", "Limited Stock Brainrots"
+    "Noobini Pizzanini", "Lirili Larila", "Tim Cheese", "Fluriflura", "Talpa Di Fero", "Noobini Santanini", "Svinina Bombardino", "Raccooni Jandelini", "Pipi Kiwi", "Tartaragno", "Pipi Corni", "Trippi Troppi", "Tung Tung Tung Sahur", "Gangster Footera", "Bandito Bobritto", "Boneca Ambalabu", "Cacto Hipopotamo", "Ta Ta Ta Ta Sahur", "Tric Trac Baraboom", "Frogo Elgo", "Pipi Avocado", "Cupcake Koala", "Pinealotto Fruttarino", "Cappuccino Assassino", "Bandito Axolito", "Brr Brr Patapim", "Avocadini Antilopini", "Trulimero Trulicina", "Bambini Crostini", "Malame Amarele", "Bananita Dolphinita", "Perochello Lemonchello", "Brri Brri Bicus Dicus Bombicus", "Avocadini Guffo", "Ti Ti Ti Sahur", "Mangolini Parrocini", "Frogato Pirato", "Salamino Penguino", "Doi Doi Do", "Penguin Tree", "Wombo Rollo", "Penguino Cocosino", "Mummio Rappitto", "Burbaloni Loliloli", "Chimpanzini Bananini", "Tirilikalika Tirilikalako", "Ballerina Cappuccina", "Chef Crabracadabra", "Lionel Cactuseli", "Glorbo Fruttodrillo", "Quivioli Ameleonni", "Blueberrinni Octopusini", "Clickerino Crabo", "Caramello Filtrello", "Pipi Potato", "Strawberrelli Flamingelli", "Cocosini Mama", "Pandaccini Bananini", "Quackula", "Pi Pi Watermelon", "Signore Carapace", "Sigma Boy", "Sigma Girl", "Chocco Bunny", "Puffaball", "Sealo Regalo", "Buho de Fuego", "Frigo Camelo", "Orangutini Ananassini", "Rhino Toasterino", "Bombardiro Crocodilo", "Brutto Gialutto", "Spioniro Golubiro", "Bombombini Gusini", "Zibra Zubra Zibralini", "Tigrilini Watermelini", "Avocadorilla", "Cavallo Virtuoso", "Te Te Te Sahur", "Gorillo Subwoofero", "Gorillo Watermelondrillo", "Stoppo Luminino", "Tracoducotulu Delapeladustuz", "Tob Tobi Tobi", "Lerulerulerule", "Ganganzelli Trulala", "Magi Ribbitini", "Rhino Helicopterino", "Jingle Jingle Sahur", "Los Noobinis", "Cachorrito Melonito", "Carloooo", "Elefanto Frigo", "Carrotini Brainini", "Centrucci Nuclucci", "Toiletto Focaccino", "Jacko Spaventosa", "Bananito Bandito", "Tree Tree Tree Sahur", "Cocofanto Elefanto", "Antonio", "Girafa Celestre", "Gattatino Nyanino", "Gattatino Neonino", "Chihuanini Taconini", "Matteo", "Tralalero Tralala", "Los Crocodillitos", "Tigroligre Frutonni", "Odin Din Din Dun", "Orcalero Orcala", "Money Money Man", "Alessio", "Unclito Samito", "Statutino Libertino", "Tipi Topi Taco", "Tralalita Tralala", "Tukanno Banana", "Extinct Ballerina", "Vampira Cappucina", "Espresso Signora", "Trenozosturzzo Turbo 3000", "Bulbito Bandito Traktorito", "Urubini Flamenguini", "Jacko Jack Jack", "Trippi Troppi Troppa Trippa", "Capi Taco", "Los Chihuaninis", "Gattito Tacoto", "Las Capuchinas", "Ballerino Lololo", "Los Tungtungtungcitos", "Pakrahmatmamat", "Ballerina Peppermintina", "Piccione Macchina", "Pakrahmatmatina", "Los Bombinitos", "Tractoro Dinosauro", "Brr Es Teh Patipum", "Cacasito Satalito", "Orcalita Orcala", "Aquanaut", "Tartaruga Cisterna", "Snailenzo", "Corn Corn Corn Sahur", "Squalanana", "Mummy Ambalabu", "Los Orcalitos", "Dug Dug Dug", "Ginger Globo", "Yeti Claus", "Crabbo Limonetta", "Los Tipi Tacos", "Granchiello Spiritell", "Frio Ninja", "Piccionetta Macchina", "Mastodontico Telepiedone", "Los Gattitos", "Bambu Bambu Sahur", "Chrismasmamat", "Anpali Babel", "Cappuccino Clownino", "Bombardini Tortinii", "Brasilini Berimbini", "Belula Beluga", "Krupuk Pagi Pagi", "Skull Skull Skull", "Cocoa Assassino", "Tentacolo Tecnico", "Ginger Cisterna", "Pop Pop Sahur", "Noo La Polizia", "La Vacca Saturno Saturnita", "Pandanini Frostini", "Bisonte Giuppitere", "Blackhole Goat", "Jackorilla", "Agarrini La Palini", "Chachechi", "Karkerkar Kurkur", "Los Tortus", "Los Matteos", "Sammyni Spyderini", "Trenostruzzo Turbo 4000", "Chimpanzini Spiderini", "Boatito Auratito", "Fragola La La La", "Dul Dul Dul", "La Vacca Prese Presente", "Frankentteo", "Karker Sahur", "Torrtuginni Dragonfrutini", "Los Tralaleritos", "Zombie Tralala", "La Cucaracha", "Vulturino Skeletono", "Guerriro Digitale", "Extinct Tralalero", "Yess My Examine", "Extinct Matteo", "Las Tralaleritas", "Reindeer Tralala", "Las Vaquitas Saturnitas", "Pumpkin Spyderini", "Job Job Job Sahur", "Los Karkeritos", "Graipuss Medussi", "Santteo", "La Vacca Jacko Linterino", "Triplito Tralaleritos", "Trickolino", "Giftini Spyderini", "Los Spyderinis", "Perrito Burrito", "1x1x1x1", "Los Cucarachas", "Please My Present", "Cuadramat and Pakrahmatmamat", "Los Jobcitos", "Nooo My Hotspot", "Pot Hotspot", "Noo My Examine", "Telemorte", "La Sahur Combinasion", "List List List Sahur", "To To To Sahur", "Pirulitoita Bicicletaire", "25", "Santa Hotspot", "Horegini Boom", "Quesadilla Crocodila", "Pot Pumpkin", "Naughty Naughty", "Ho Ho Ho Sahur", "Chicleteira Bicicleteira", "Spaghetti Tualetti", "Esok Sekolah", "Quesadillo Vampiro", "Burrito Bandito", "Chicleteirina Bicicleteirina", "Los Quesadillas", "Noo My Candy", "Los Nooo My Hotspotsitos", "La Grande Combinasion", "Rang Ring Bus", "Guest 666", "Los Chicleteiras", "67", "Mariachi Corazoni", "Los Burritos", "Los 25", "Swag Soda", "Chimnino", "Los Combinasionas", "Chicleteira Noelteira", "Fishino Clownino", "Tacorita Bicicleta", "Nuclearo Dinosauro", "Las Sis", "La Karkerkar Combinasion", "Chillin Chili", "Chipso and Queso", "Money Money Puggy", "Celularcini Viciosini", "Los Planitos", "Los Mobilis", "Los 67", "Mieteteira Bicicleteira", "La Spooky Grande", "Los Spooky Combinasionas", "Los Candies", "Los Hotspositos", "Los Puggies", "W or L", "Tralalalaledon", "La Extinct Grande Combinasion", "Tralaledon", "La Jolly Grande", "Los Primos", "Eviledon", "Los Tacoritas", "Tang Tang Kelentang", "Ketupat Kepat", "Los Bros", "Tictac Sahur", "La Supreme Combinasion", "Gingerat Gerat", "Orcaledon", "Ketchuru and Masturu", "Garama and Madundung", "Festive 67", "La Ginger Sekolah", "Spooky and Pumpky", "Lavadorito Spinito", "Los Spaghettis", "La Casa Boo", "Fragrama and Chocrama", "La Secret Combinasion", "Reinito Sleighito", "Burguro and Fryuro", "Dragon Cannelloni", "Cooki and Milki", "Capitano Moby", "Headless Horseman", "Strawberry Elephant", "Meowl", "2", "6", "Admin Lucky Block", "Brainrot God", "Brainrot God Lucky Block", "Brainrot Trader", "Ice Dragon", "John Pork", "Christmas Brainrots", "Festive Lucky Block", "Arachnid Family", "Combinasions Family", "Karkerkur Family", "Limited Stock Brainrots"
 }
 -- ========================================
 
@@ -50,12 +54,13 @@ local LocalPlayer = Players.LocalPlayer
 -- Request function
 local requestFunc = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
 
+
 -- ========= UTILITY FUNCTIONS =========
-local function formatMs(ms)
-    if ms >= 1000000000 then return string.format("%.2fB", ms / 1000000000)
-    elseif ms >= 1000000 then return string.format("%.2fM", ms / 1000000)
-    elseif ms >= 1000 then return string.format("%.2fK", ms / 1000)
-    else return tostring(ms)
+local function formatValue(value)
+    if value >= 1000000000 then return string.format("%.2fB", value / 1000000000)
+    elseif value >= 1000000 then return string.format("%.2fM", value / 1000000)
+    elseif value >= 1000 then return string.format("%.2fK", value / 1000)
+    else return tostring(math.floor(value))
     end
 end
 
@@ -99,41 +104,55 @@ local function getWorldPos(inst)
     return nil
 end
 
--- Enhanced M/s parser with ALL possible patterns
-local function parseMsFromText(text)
+-- CORRECTED /s parser - handles all formats: 100/s, 1k/s, 100k/s, 1m/s, etc.
+local function parsePerSecondFromText(text)
     if typeof(text) ~= "string" then return nil end
-    local lower = text:lower():gsub("%s+", " "):gsub(",", "")
+    
+    -- Remove all commas first, then clean whitespace
+    local cleaned = text:gsub(",", ""):gsub("%s+", " ")
+    local lower = cleaned:lower()
     
     if DEBUG_MODE then
-        print("🔍 Parsing text:", text)
+        print("🔍 Parsing text:", text, "→ Cleaned:", cleaned)
     end
     
+    -- Look for /s patterns (the actual income rate)
     local patterns = {
-        "([%d%.]+)%s*([kmb]?)%s*m%s*/%s*s",
+        -- Pattern 1: Number with suffix and /s (e.g., "1.5m/s", "100k/s")
+        "([%d%.]+)%s*([kmb])%s*/%s*s",
+        
+        -- Pattern 2: Plain number with /s (e.g., "100/s", "1500/s")
         "([%d%.]+)%s*/%s*s",
-        "([%d%.]+)%s*([kmb])%s*$",
-        "([%d%.]+)%s*([kmb])",
-        "([%d%.]+)"
     }
     
-    for _, pattern in ipairs(patterns) do
+    for patternIndex, pattern in ipairs(patterns) do
         local num, suffix = lower:match(pattern)
         if num then
             local base = tonumber(num)
-            if base then
+            if base and base > 0 then
                 suffix = suffix or ""
-                if suffix == "k" then base = base * 1e3
-                elseif suffix == "m" then base = base * 1e6
-                elseif suffix == "b" then base = base * 1e9
+                
+                -- Apply suffix multiplier
+                if suffix == "k" then 
+                    base = base * 1000
+                elseif suffix == "m" then 
+                    base = base * 1000000
+                elseif suffix == "b" then 
+                    base = base * 1000000000
                 end
                 
                 if DEBUG_MODE then
-                    print("✅ Parsed M/s value:", formatMs(base))
+                    print(string.format("✅ Pattern %d matched: %s%s → %.0f /s", 
+                        patternIndex, num, suffix, base))
                 end
                 
                 return base
             end
         end
+    end
+    
+    if DEBUG_MODE then
+        print("❌ No valid /s pattern found in:", text)
     end
     
     return nil
@@ -147,7 +166,7 @@ local function scanDebrisEnhanced()
         return {} 
     end
 
-    local msDataByPosition = {}
+    local dataByPosition = {}
     local totalFound = 0
     local skippedNoDollar = 0
     local skippedOfflineCash = 0
@@ -156,7 +175,7 @@ local function scanDebrisEnhanced()
     print("🔍 Scanning Debris folder...")
     
     for _, obj in ipairs(debrisFolder:GetChildren()) do
-        local msValue = nil
+        local perSecValue = nil
         local foundText = nil
         local objPos = getWorldPos(obj)
 
@@ -165,6 +184,7 @@ local function scanDebrisEnhanced()
                 local text = gui.Text
                 local lowerText = text:lower()
                 
+                -- Skip offline cash
                 if lowerText:match("offline") or lowerText:match("cash") then
                     if DEBUG_MODE then
                         print(string.format("⏭️ Skipped (offline cash): '%s'", text))
@@ -176,23 +196,22 @@ local function scanDebrisEnhanced()
                 local hasDollar = text:match("%$")
                 local hasSlash = text:match("/s") or text:match("/S")
                 
+                -- Only parse if it has both $ and /s indicators
                 if hasDollar and hasSlash then
-                    local v = parseMsFromText(text)
+                    local v = parsePerSecondFromText(text)
                     if v and v > 0 then
-                        msValue = v
+                        perSecValue = v
                         foundText = text
                         if DEBUG_MODE then
-                            print(string.format("💰 Valid M/s: %s from text: '%s'", formatMs(v), text))
+                            print(string.format("💰 Valid /s: %.0f from text: '%s'", v, text))
                         end
                         break
                     end
                 else
                     if DEBUG_MODE then
                         if not hasDollar then
-                            print(string.format("⏭️ Skipped (no $): '%s'", text))
                             skippedNoDollar = skippedNoDollar + 1
                         elseif not hasSlash then
-                            print(string.format("⏭️ Skipped (no /s): '%s'", text))
                             skippedNoSlash = skippedNoSlash + 1
                         end
                     end
@@ -200,27 +219,29 @@ local function scanDebrisEnhanced()
             end
         end
 
-        if msValue and objPos then
-            table.insert(msDataByPosition, {
-                ms = msValue,
+        if perSecValue and objPos then
+            table.insert(dataByPosition, {
+                value = perSecValue,
                 pos = objPos,
                 text = foundText,
                 object = obj,
                 matched = false
             })
             totalFound = totalFound + 1
-            print(string.format("✅ Debris #%d: %s at position (%d, %d, %d) | Text: '%s'", 
-                totalFound, formatMs(msValue), 
+            print(string.format("✅ Debris #%d: %.0f /s at position (%d, %d, %d) | Text: '%s'", 
+                totalFound, perSecValue, 
                 math.floor(objPos.X), math.floor(objPos.Y), math.floor(objPos.Z),
                 foundText))
         end
     end
 
     print(string.format("📊 Total valid debris (with $ and /s): %d", totalFound))
-    print(string.format("⏭️ Skipped (no $): %d", skippedNoDollar))
-    print(string.format("⏭️ Skipped (no /s): %d", skippedNoSlash))
-    print(string.format("⏭️ Skipped (offline cash): %d", skippedOfflineCash))
-    return msDataByPosition
+    if DEBUG_MODE then
+        print(string.format("⏭️ Skipped (no $): %d", skippedNoDollar))
+        print(string.format("⏭️ Skipped (no /s): %d", skippedNoSlash))
+        print(string.format("⏭️ Skipped (offline cash): %d", skippedOfflineCash))
+    end
+    return dataByPosition
 end
 
 -- ========= SCAN BRAINROTS =========
@@ -256,7 +277,7 @@ local function scanBrainrots()
                             name = obj.Name,
                             position = pos,
                             object = obj,
-                            ms = 0
+                            value = 0
                         })
                         print(string.format("🎯 Found brainrot: %s at (%d, %d, %d)", 
                             obj.Name, 
@@ -294,13 +315,13 @@ local function matchBrainrotsWithDebris(brainrotList, debrisData)
                         distance = dist,
                         verticalDist = verticalDist,
                         brainrotName = brainrot.name,
-                        debrisMs = debris.ms,
+                        debrisValue = debris.value,
                         debrisText = debris.text
                     })
                     
                     if DEBUG_MODE then
-                        print(string.format("   📍 Potential pair: %s ← %s (dist: %.2f, above: %.2f studs)", 
-                            brainrot.name, formatMs(debris.ms), dist, verticalDist))
+                        print(string.format("   📍 Potential pair: %s ← %.0f /s (dist: %.2f, above: %.2f studs)", 
+                            brainrot.name, debris.value, dist, verticalDist))
                     end
                 elseif verticalDist <= 0 and DEBUG_MODE then
                     print(string.format("   ⬇️ Rejected (below brainrot): debris at Y=%d vs brainrot %s at Y=%d", 
@@ -310,7 +331,7 @@ local function matchBrainrotsWithDebris(brainrotList, debrisData)
         end
     end
     
-    print(string.format("   Found %d potential matches within range (debris above brainrot)", #pairs))
+    print(string.format("   Found %d potential matches within range", #pairs))
     
     table.sort(pairs, function(a, b) 
         return a.distance < b.distance 
@@ -325,16 +346,16 @@ local function matchBrainrotsWithDebris(brainrotList, debrisData)
         local dIndex = pair.debrisIndex
         
         if not matchedBrainrots[bIndex] and not matchedDebris[dIndex] then
-            brainrotList[bIndex].ms = debrisData[dIndex].ms
+            brainrotList[bIndex].value = debrisData[dIndex].value
             debrisData[dIndex].matched = true
             matchedBrainrots[bIndex] = true
             matchedDebris[dIndex] = true
             matchCount = matchCount + 1
             
-            print(string.format("✅ Match #%d: %s → %s M/s (dist: %.2f studs, above: %.2f) | Text: '%s'", 
+            print(string.format("✅ Match #%d: %s → %.0f /s (dist: %.2f studs, above: %.2f) | Text: '%s'", 
                 matchCount,
                 pair.brainrotName,
-                formatMs(pair.debrisMs),
+                pair.debrisValue,
                 pair.distance,
                 pair.verticalDist,
                 pair.debrisText
@@ -346,12 +367,14 @@ local function matchBrainrotsWithDebris(brainrotList, debrisData)
     for i, brainrot in ipairs(brainrotList) do
         if not matchedBrainrots[i] then
             unmatchedCount = unmatchedCount + 1
-            print(string.format("❌ No match: %s at (%d, %d, %d)", 
-                brainrot.name,
-                math.floor(brainrot.position.X),
-                math.floor(brainrot.position.Y),
-                math.floor(brainrot.position.Z)
-            ))
+            if DEBUG_MODE then
+                print(string.format("❌ No match: %s at (%d, %d, %d)", 
+                    brainrot.name,
+                    math.floor(brainrot.position.X),
+                    math.floor(brainrot.position.Y),
+                    math.floor(brainrot.position.Z)
+                ))
+            end
         end
     end
     
@@ -363,197 +386,219 @@ local function matchBrainrotsWithDebris(brainrotList, debrisData)
     return brainrotList
 end
 
--- Track visited servers
-local visitedServers = {}
 
--- ========= IMPROVED SERVER HOP =========
+
+-- ========= IMPROVED SERVER HOP WITH FILE PERSISTENCE =========
 local function serverHop()
     print("🔄 Initiating server hop...")
     
+    -- Load visited servers from file
+    local AllIDs = {}
+    local actualHour = os.date("!*t").hour
+    
+    local File = pcall(function()
+        AllIDs = HttpService:JSONDecode(readfile("brainrot-servers.json"))
+    end)
+    
+    if not File then
+        table.insert(AllIDs, actualHour)
+        pcall(function()
+            writefile("brainrot-servers.json", HttpService:JSONEncode(AllIDs))
+        end)
+    end
+    
     local success, err = pcall(function()
-        local servers = {}
         local url = string.format(
-            "https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Desc&limit=100",
+            "https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100",
             game.PlaceId
         )
         
         local response = game:HttpGet(url)
         local data = HttpService:JSONDecode(response)
         
-        -- Mark current server as visited
-        visitedServers[game.JobId] = true
-        
+        local num = 0
         for _, server in pairs(data.data) do
-            if server.id ~= game.JobId and not visitedServers[server.id] and server.playing < server.maxPlayers then
-                table.insert(servers, server)
-            end
-        end
-        
-        if #servers > 0 then
-            -- Sort by player count (busiest servers first)
-            table.sort(servers, function(a, b)
-                return a.playing > b.playing
-            end)
+            local Possible = true
+            local ID = tostring(server.id)
             
-            -- Pick a random server from top 10 busiest
-            local targetServer = servers[math.random(1, math.min(10, #servers))]
-            
-            print(string.format("🎯 Teleporting to server with %d/%d players...", 
-                targetServer.playing, targetServer.maxPlayers))
-            
-            TeleportService:TeleportToPlaceInstance(
-                game.PlaceId,
-                targetServer.id,
-                LocalPlayer
-            )
-        else
-            warn("⚠️ No unvisited servers found, clearing history and retrying...")
-            visitedServers = {}
-            visitedServers[game.JobId] = true
-            
-            -- Retry with cleared history
-            for _, server in pairs(data.data) do
-                if server.id ~= game.JobId and server.playing < server.maxPlayers then
-                    table.insert(servers, server)
+            -- Check if server meets requirements
+            if server.playing >= MIN_PLAYERS_IN_SERVER and server.playing < server.maxPlayers then
+                
+                -- Check against visited servers
+                for _, Existing in pairs(AllIDs) do
+                    if num ~= 0 then
+                        if ID == tostring(Existing) then
+                            Possible = false
+                            if DEBUG_MODE then
+                                print(string.format("   ⏭️ Skipped (visited): %d/%d players", server.playing, server.maxPlayers))
+                            end
+                        end
+                    else
+                        -- Reset file if hour changed
+                        if tonumber(actualHour) ~= tonumber(Existing) then
+                            pcall(function()
+                                delfile("brainrot-servers.json")
+                                AllIDs = {}
+                                table.insert(AllIDs, actualHour)
+                            end)
+                        end
+                    end
+                    num = num + 1
+                end
+                
+                -- Teleport to valid server
+                if Possible == true then
+                    table.insert(AllIDs, ID)
+                    pcall(function()
+                        writefile("brainrot-servers.json", HttpService:JSONEncode(AllIDs))
+                    end)
+                    
+                    print(string.format("🎯 Teleporting to server with %d/%d players...", 
+                        server.playing, server.maxPlayers))
+                    print(string.format("📊 Total visited servers: %d", #AllIDs - 1))
+                    
+                    local teleportSuccess = pcall(function()
+                        TeleportService:TeleportToPlaceInstance(
+                            game.PlaceId,
+                            ID,
+                            LocalPlayer
+                        )
+                    end)
+                    
+                    if not teleportSuccess then
+                        warn("⚠️ Teleport failed (server full?), trying next server...")
+                        continue  -- Try next server in the loop
+                    else
+                        return  -- Successfully teleported
+                    end
+                end
+            elseif DEBUG_MODE then
+                if server.playing < MIN_PLAYERS_IN_SERVER then
+                    print(string.format("   ⏭️ Skipped (too few players): %d/%d", server.playing, server.maxPlayers))
                 end
             end
-            
-            if #servers > 0 then
-                table.sort(servers, function(a, b)
-                    return a.playing > b.playing
-                end)
-                local targetServer = servers[math.random(1, math.min(10, #servers))]
-                TeleportService:TeleportToPlaceInstance(
-                    game.PlaceId,
-                    targetServer.id,
-                    LocalPlayer
-                )
-            else
-                warn("⚠️ No available servers, using standard teleport")
-                TeleportService:Teleport(game.PlaceId, LocalPlayer)
-            end
         end
+        
+        warn("⚠️ No valid servers found, trying standard teleport...")
+        TeleportService:Teleport(game.PlaceId, LocalPlayer)
     end)
     
     if not success then
         warn("❌ Server hop failed:", err)
-        warn("⚠️ Attempting standard teleport...")
-        pcall(function()
-            TeleportService:Teleport(game.PlaceId, LocalPlayer)
-        end)
+        warn("🔄 Retrying in 3 seconds...")
+        wait(3)
+        serverHop()  -- Retry
     end
 end
 
--- ========= WEBHOOK =========
+-- ========= DUAL WEBHOOK SYSTEM =========
 local function sendToWebhook(brainrotList)
-    print("\n📤 Preparing webhook...")
+    print("\n📤 Preparing webhooks...")
     
     local filteredBrainrots = {}
     local totalGeneration = 0
     
     for _, brainrot in pairs(brainrotList) do
-        local ms = brainrot.ms or 0
-        if ms >= MIN_MS_FILTER and ms <= MAX_MS_FILTER then
+        local value = brainrot.value or 0
+        if value >= MIN_FILTER and value <= MAX_FILTER then
             brainrot.rarity = getRarityScore(brainrot.name)
             table.insert(filteredBrainrots, brainrot)
-            totalGeneration = totalGeneration + ms
+            totalGeneration = totalGeneration + value
         end
     end
     
-    print(string.format("📊 Filtered: %d brainrots, Total: %s M/s", 
-        #filteredBrainrots, formatMs(totalGeneration)))
+    print(string.format("📊 Filtered: %d brainrots (%.0f total /s)", #filteredBrainrots, totalGeneration))
+    print(string.format("   Filter: %.0f - %s /s", MIN_FILTER, MAX_FILTER == math.huge and "∞" or formatValue(MAX_FILTER)))
     
     if #filteredBrainrots == 0 then
-        print("⏭️ No matches - skipping webhook")
+        print("⏭️ No matches - skipping webhooks")
         return false
     end
     
-    print("✅ MATCH FOUND! Sending webhook...")
+    print("✅ MATCH FOUND! Sending webhooks...")
     
-    table.sort(filteredBrainrots, function(a, b) return (a.ms or 0) > (b.ms or 0) end)
+    table.sort(filteredBrainrots, function(a, b) return (a.value or 0) > (b.value or 0) end)
     
     local jobId = game.JobId
-    local placeId = game.PlaceId
     
-    -- Build clean description with top 2 highlighted
-    local description = ""
-    
-    -- Top 2 Brainrots Section (Highlighted)
-    if #filteredBrainrots >= 1 then
-        description = description .. "## 🏆 TOP GENERATORS\n\n"
-        
-        for i = 1, math.min(2, #filteredBrainrots) do
-            local brainrot = filteredBrainrots[i]
-            local rarityDisplay = RARITY_DISPLAY[brainrot.rarity] or ""
-            description = description .. string.format(" #%d - %s\n**%s**\n> 💰 **%s M/s**\n\n",
-                i, rarityDisplay, brainrot.name, formatMs(brainrot.ms))
-        end
-    end
-    
-    -- Rest of brainrots (if more than 2)
-    if #filteredBrainrots > 2 then
-        description = description .. "## 📋 OTHER BRAINROTS\n"
-        for i = 3, math.min(15, #filteredBrainrots) do
-            local brainrot = filteredBrainrots[i]
-            local rarityDisplay = RARITY_DISPLAY[brainrot.rarity] or ""
-            description = description .. string.format("`#%d` %s **%s** → `%s M/s`\n",
-                i, rarityDisplay, brainrot.name, formatMs(brainrot.ms))
-        end
-        
-        if #filteredBrainrots > 15 then
-            description = description .. string.format("\n*... and %d more brainrots*", #filteredBrainrots - 15)
-        end
-    end
-    
-    local payload = {
-        ["content"] = "@everyone",
-        ["embeds"] = {{
-            ["title"] = "🚨 HIGH VALUE BRAINROTS DETECTED",
-            ["description"] = description:sub(1, 4096),
-            ["color"] = 5814783,
-            ["fields"] = {
-                {
-                    ["name"] = "💰 Total Generation",
-                    ["value"] = string.format("```%s M/s```", formatMs(totalGeneration)),
-                    ["inline"] = true
-                },
-                {
-                    ["name"] = "🧠 Total Brainrots",
-                    ["value"] = string.format("```%d```", #filteredBrainrots),
-                    ["inline"] = true
-                },
-                {
-                    ["name"] = "⚙️ Filter Range",
-                    ["value"] = string.format("```%s - %s M/s```", 
-                        formatMs(MIN_MS_FILTER),
-                        MAX_MS_FILTER == math.huge and "∞" or formatMs(MAX_MS_FILTER)),
-                    ["inline"] = true
-                },
-                {
-                    ["name"] = "🎮 Server Information",
-                    ["value"] = string.format("**Job ID:** `%s`\n**Scanner:** %s", jobId, LocalPlayer.Name),
-                    ["inline"] = false
-                }
-            },
-            ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%S"),
-            ["footer"] = {
-                ["text"] = "Brainrot Scanner v2.0",
-                ["icon_url"] = "https://cdn.discordapp.com/emojis/123456789.png"
-            },
-            ["thumbnail"] = {
-                ["url"] = "https://tr.rbxcdn.com/57c98c95c84a5de8074945dcde8536d5/150/150/Image/Png"
-            }
-        }}
+    -- ========= WEBHOOK 1: SIMPLE JOB ID TO REPLIT =========
+    local replitPayload = {
+        ["content"] = string.format("Job ID: `%s` Scanner: %s", jobId, LocalPlayer.Name)
     }
     
     if requestFunc then
-        requestFunc({
-            Url = WEBHOOK_URL,
-            Method = "POST",
-            Headers = {["Content-Type"] = "application/json"},
-            Body = HttpService:JSONEncode(payload)
-        })
-        print("✅ WEBHOOK SENT!")
+        local success1 = pcall(function()
+            requestFunc({
+                Url = REPLIT_WEBHOOK_URL,
+                Method = "POST",
+                Headers = {["Content-Type"] = "application/json"},
+                Body = HttpService:JSONEncode(replitPayload)
+            })
+        end)
+        
+        if success1 then
+            print("✅ REPLIT WEBHOOK SENT (Job ID only)")
+        else
+            warn("❌ Replit webhook failed")
+        end
+    end
+    
+    -- ========= WEBHOOK 2: FULL DETAILS TO DISCORD =========
+    local content = "@everyone\n🚨 **HIGH VALUE BRAINROTS DETECTED**\n\n"
+    
+    -- Top Generators
+    if #filteredBrainrots >= 1 then
+        content = content .. "🏆 **TOP GENERATORS**\n"
+        for i = 1, math.min(2, #filteredBrainrots) do
+            local brainrot = filteredBrainrots[i]
+            local rarityDisplay = RARITY_DISPLAY[brainrot.rarity] or ""
+            content = content .. string.format("#%d - **%s**\n%s\n💰 **%s/s**\n\n",
+                i, brainrot.name, rarityDisplay, formatValue(brainrot.value))
+        end
+    end
+    
+    -- Other Brainrots
+    if #filteredBrainrots > 2 then
+        content = content .. "📋 **OTHER BRAINROTS**\n"
+        for i = 3, math.min(6, #filteredBrainrots) do
+            local brainrot = filteredBrainrots[i]
+            local rarityDisplay = RARITY_DISPLAY[brainrot.rarity] or ""
+            content = content .. string.format("`#%d` %s **%s** → `%s/s` ",
+                i, rarityDisplay, brainrot.name, formatValue(brainrot.value))
+        end
+        content = content .. "\n\n"
+    end
+    
+    -- Stats
+    content = content .. string.format("💰 **Total Generation**\n```\n%s/s\n```\n\n", formatValue(totalGeneration))
+    content = content .. string.format("🧠 **Total Brainrots**\n```\n%d\n```\n\n", #filteredBrainrots)
+    content = content .. string.format("⚙️ **Filter Range**\n```\n%s - %s /s\n```\n\n",
+        formatValue(MIN_FILTER),
+        MAX_FILTER == math.huge and "∞" or formatValue(MAX_FILTER))
+    
+    -- Server Info
+    content = content .. string.format("🎮 **Server Information**\nJob ID: `%s` Scanner: %s\n", jobId, LocalPlayer.Name)
+    content = content .. "Brainrot Scanner v2.1"
+    
+    local discordPayload = {
+        ["content"] = content
+    }
+    
+    if requestFunc then
+        local success2 = pcall(function()
+            requestFunc({
+                Url = DISCORD_WEBHOOK_URL,
+                Method = "POST",
+                Headers = {["Content-Type"] = "application/json"},
+                Body = HttpService:JSONEncode(discordPayload)
+            })
+        end)
+        
+        if success2 then
+            print("✅ DISCORD WEBHOOK SENT (Full details)")
+        else
+            warn("❌ Discord webhook failed")
+        end
     else
         warn("❌ No HTTP request function available")
     end
@@ -585,17 +630,6 @@ local function createButtons()
     scanCorner.CornerRadius = UDim.new(0, 10)
     scanCorner.Parent = scanButton
     
-    local scanShadow = Instance.new("ImageLabel")
-    scanShadow.Size = UDim2.new(1, 6, 1, 6)
-    scanShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
-    scanShadow.AnchorPoint = Vector2.new(0.5, 0.5)
-    scanShadow.BackgroundTransparency = 1
-    scanShadow.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
-    scanShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    scanShadow.ImageTransparency = 0.7
-    scanShadow.ZIndex = 0
-    scanShadow.Parent = scanButton
-    
     -- Server Hop Button
     local hopButton = Instance.new("TextButton")
     hopButton.Size = UDim2.new(0, 180, 0, 50)
@@ -612,17 +646,6 @@ local function createButtons()
     local hopCorner = Instance.new("UICorner")
     hopCorner.CornerRadius = UDim.new(0, 10)
     hopCorner.Parent = hopButton
-    
-    local hopShadow = Instance.new("ImageLabel")
-    hopShadow.Size = UDim2.new(1, 6, 1, 6)
-    hopShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
-    hopShadow.AnchorPoint = Vector2.new(0.5, 0.5)
-    hopShadow.BackgroundTransparency = 1
-    hopShadow.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
-    hopShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    hopShadow.ImageTransparency = 0.7
-    hopShadow.ZIndex = 0
-    hopShadow.Parent = hopButton
     
     -- Hover effects
     scanButton.MouseEnter:Connect(function()
@@ -661,8 +684,12 @@ local function performScan()
 end
 
 -- ========= MAIN =========
-print("🚀 Brainrot Scanner Loading...")
-print("⚙️ Filter: Min=" .. formatMs(MIN_MS_FILTER) .. " | Max=" .. (MAX_MS_FILTER == math.huge and "∞" or formatMs(MAX_MS_FILTER)))
+print("🚀 Brainrot Scanner v2.1 Loading...")
+print("⚙️ Filter: Min=" .. formatValue(MIN_FILTER) .. "/s | Max=" .. (MAX_FILTER == math.huge and "∞" or formatValue(MAX_FILTER)) .. "/s")
+print("📤 Discord Webhook: " .. (DISCORD_WEBHOOK_URL ~= "YOUR_DISCORD_WEBHOOK_URL_HERE" and "✅ Configured" or "❌ NOT SET"))
+print("📤 Replit Webhook: " .. REPLIT_WEBHOOK_URL)
+print("👥 Min Players: " .. MIN_PLAYERS_IN_SERVER)
+print("🔄 Server Memory: " .. MAX_VISITED_SERVERS)
 
 local scanButton, hopButton = createButtons()
 
