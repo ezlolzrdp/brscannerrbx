@@ -5,7 +5,7 @@
 -- Configuration
 local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1452120328364101693/XSaMuA_dNl_GShp3ONOOEmNnkakZeMctfvyKXVV-hJDxgK8H6ZTUoCApFxBw4Nzbo5_8"
 local REPLIT_WEBHOOK_URL = "https://nodejs--bugpvpalt.replit.app/webhook"
-local HOP_DELAY = 2
+local HOP_DELAY = 1
 local DEBUG_MODE = true
 
 -- /s Filter Settings (EDIT THESE) - Note: these are in /s not m/s!
@@ -14,7 +14,7 @@ local MAX_FILTER = math.huge  -- Maximum /s value
 local AUTO_SCAN_ON_JOIN = true
 
 -- Server hop settings
-local MIN_PLAYERS_IN_SERVER = 2  -- Don't join servers with less than this many players
+local MIN_PLAYERS_IN_SERVER = 0  -- Don't join servers with less than this many players
 local MAX_VISITED_SERVERS = 50   -- Remember this many visited servers
 
 -- ========================================
