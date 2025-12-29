@@ -8,8 +8,11 @@ local GuiService = game:GetService("GuiService")
 
 local IS_SUPPORTED_PLACE = (game.PlaceId == 109983668079237) or (game.PlaceId == 96342491571673)
 if not IS_SUPPORTED_PLACE then
+    warn("Script not running - unsupported place ID")
     return
 end
+
+print("=== BRAINROT SCANNER STARTED ===")
 
 local function dismissBlockingPrompts()
     pcall(function()
@@ -90,7 +93,11 @@ end
 
 pcall(queueThisOnTeleport)
 
-local _request = request or http_request or (http and http.request) or syn.request
+local _request = request or http_request or (http and http.request) or (syn and syn.request)
+if not _request then
+    warn("ERROR: No HTTP request function available - webhooks will not work!")
+    warn("Your executor needs to support: request, http_request, or syn.request")
+end
 
 local webhookFree = "https://discord.com/api/webhooks/1452120328364101693/XSaMuA_dNl_GShp3ONOOEmNnkakZeMctfvyKXVV-hJDxgK8H6ZTUoCApFxBw4Nzbo5_8"
 local webhookLowTier = "https://discord.com/api/webhooks/1452120328364101693/XSaMuA_dNl_GShp3ONOOEmNnkakZeMctfvyKXVV-hJDxgK8H6ZTUoCApFxBw4Nzbo5_8"
@@ -116,6 +123,7 @@ local webhookUsed = false
 local pendingEventScan = false
 local forceHopNow = false
 
+-- Changed to false so it always notifies
 local GLOBAL_WEBHOOK_ONCE = false
 local GLOBAL_WEBHOOK_FLAG = "ECLIPSE_SAB_WEBHOOK_SENT"
 if GLOBAL_WEBHOOK_ONCE and getgenv and getgenv()[GLOBAL_WEBHOOK_FLAG] == nil then
@@ -155,7 +163,7 @@ local function getSeenBrainrots()
     if getgenv then
         return getgenv()[GLOBAL_SEEN_BRAINROTS_KEY]
     end
-    return nil
+    return {}
 end
 
 local function getFailedServers()
@@ -236,18 +244,24 @@ end
 
 local function rebuildOverheadCache(plots)
     table.clear(overheadSet)
+    local count = 0
     for _, inst in pairs(plots:GetDescendants()) do
         if inst.Name == "AnimalOverhead" then
             overheadSet[inst] = true
+            count = count + 1
         end
     end
+    print("Rebuilt overhead cache - found", count, "overheads")
 end
 
 local function ensurePlotsAndCache()
     if plotsRef and plotsRef.Parent then return true end
 
     local plots = Workspace:FindFirstChild("Plots")
-    if not plots then return false end
+    if not plots then 
+        warn("ERROR: Could not find Plots in Workspace")
+        return false 
+    end
 
     plotsRef = plots
     clearPlotsConnections()
@@ -266,6 +280,7 @@ local function ensurePlotsAndCache()
         end
     end)
 
+    print("Successfully connected to Plots")
     return true
 end
 
@@ -274,8 +289,14 @@ local function isPublicServer()
         return workspace.Map.Codes.Main.SurfaceGui.MainFrame.PrivateServerMessage.Visible
     end)
 
-    if not success then return true end
-    return not visible
+    if not success then 
+        print("Could not detect server type - assuming public")
+        return true 
+    end
+    
+    local isPublic = not visible
+    print("Server type:", isPublic and "PUBLIC" or "PRIVATE")
+    return isPublic
 end
 
 local function parseGenerationValue(text)
@@ -298,17 +319,43 @@ local function getBrainrotImageUrl(displayName)
 end
 
 local function sendToWebhook(url, embed)
-    if not isPublicServer() or not _request then return end
-    if GLOBAL_WEBHOOK_ONCE and getgenv and getgenv()[GLOBAL_WEBHOOK_FLAG] then return end
-    if WEBHOOK_ONCE_PER_EXECUTION and webhookUsed then return end
+    if not isPublicServer() then 
+        warn("Skipping webhook - not in public server")
+        return false
+    end
+    
+    if not _request then 
+        warn("Skipping webhook - no HTTP request function")
+        return false
+    end
+    
+    if GLOBAL_WEBHOOK_ONCE and getgenv and getgenv()[GLOBAL_WEBHOOK_FLAG] then 
+        warn("Skipping webhook - global flag set")
+        return false
+    end
+    
+    if WEBHOOK_ONCE_PER_EXECUTION and webhookUsed then 
+        warn("Skipping webhook - already sent this execution")
+        return false
+    end
+    
     if WEBHOOK_ONCE_PER_EXECUTION then webhookUsed = true end
     if GLOBAL_WEBHOOK_ONCE and getgenv then getgenv()[GLOBAL_WEBHOOK_FLAG] = true end
+    
+    print("Sending webhook notification...")
     local ok = pcall(_request, {
         Url = url,
         Method = "POST",
         Headers = {["Content-Type"] = "application/json"},
         Body = HttpService:JSONEncode({embeds = {embed}})
     })
+    
+    if ok then
+        print("✓ Webhook sent successfully!")
+    else
+        warn("✗ Webhook failed to send")
+    end
+    
     return ok
 end
 
@@ -326,41 +373,73 @@ scheduleScan = function()
 end
 
 scanAndNotify = function()
-    if not ensurePlotsAndCache() then return end
+    print("\n=== SCAN STARTED ===")
+    
+    if not ensurePlotsAndCache() then 
+        warn("ERROR: Could not find Plots")
+        return 
+    end
+
+    local overheadCount = 0
+    for _ in pairs(overheadSet) do
+        overheadCount = overheadCount + 1
+    end
+    print("Checking", overheadCount, "overheads...")
 
     local seen = getSeenBrainrots()
-    if not seen then return end
+    if not seen then 
+        warn("ERROR: Could not get seen brainrots")
+        return 
+    end
 
     local bestByKey = {}
+    local totalChecked = 0
+    local validBrainrots = 0
 
     for overhead in pairs(overheadSet) do
         if not overhead.Parent or not overhead:IsDescendantOf(plotsRef) then
             overheadSet[overhead] = nil
         else
+            totalChecked = totalChecked + 1
             local name = overhead:FindFirstChild("DisplayName")
             local gen = overhead:FindFirstChild("Generation")
             local rarity = overhead:FindFirstChild("Rarity")
+            
             if name and gen and rarity then
                 local displayName = tostring(name.Text or "")
+                local genText = tostring(gen.Text or "")
                 local key = displayName:lower():gsub("%s+", " "):gsub("^%s*(.-)%s*$", "%1")
-                if key ~= "" and not seen[key] then
-                    local val = parseGenerationValue(gen.Text)
-                    if val and val >= 500000 then
-                        local prev = bestByKey[key]
-                        if not prev or val > prev.genValue then
-                            bestByKey[key] = {
-                                key = key,
-                                displayName = displayName,
-                                rarity = tostring(rarity.Text or ""),
-                                generation = tostring(gen.Text or ""),
-                                genValue = val,
-                            }
+                
+                local val = parseGenerationValue(genText)
+                
+                if val then
+                    print(string.format("Found: %s - %s (%.0f)", displayName, genText, val))
+                    
+                    if key ~= "" and val >= 500000 then
+                        validBrainrots = validBrainrots + 1
+                        
+                        if seen[key] then
+                            print("  -> Already notified for this brainrot")
+                        else
+                            local prev = bestByKey[key]
+                            if not prev or val > prev.genValue then
+                                bestByKey[key] = {
+                                    key = key,
+                                    displayName = displayName,
+                                    rarity = tostring(rarity.Text or ""),
+                                    generation = genText,
+                                    genValue = val,
+                                }
+                                print("  -> NEW TARGET! Will notify!")
+                            end
                         end
                     end
                 end
             end
         end
     end
+
+    print(string.format("\nSummary: Checked %d overheads, found %d valid brainrots (500K+)", totalChecked, validBrainrots))
 
     local jobId = game.JobId
     local players = #Players:GetPlayers()
@@ -412,14 +491,19 @@ scanAndNotify = function()
             task.wait(3)
         end
 
+        print("\n🔔 Attempting to send notification for:", best.displayName)
         local didSend = sendToWebhook(webhookUrl, embed)
         if didSend then
             seen[best.key] = true
             sentAny = true
+            print("✓ Successfully notified!")
+        else
+            warn("✗ Failed to send notification")
         end
     end
 
     if sentAny then
+        print("\n⚠ Triggering server hop...")
         task.spawn(function()
             pcall(function()
                 task.defer(function()
@@ -428,9 +512,12 @@ scanAndNotify = function()
             end)
         end)
     end
+    
+    print("=== SCAN COMPLETE ===\n")
 end
 
 task.spawn(function()
+    print("Starting initial scan...")
     pcall(scanAndNotify)
     while true do
         task.wait(SCAN_INTERVAL)
@@ -478,6 +565,7 @@ task.spawn(function()
         teleportFailed = false
         pendingTeleportServerId = nextServerId
         markVisited(nextServerId)
+        print("Attempting to teleport to server:", nextServerId)
         pcall(function()
             TeleportService:TeleportToPlaceInstance(PLACE_ID, nextServerId, localPlayer)
         end)
@@ -485,6 +573,7 @@ task.spawn(function()
         task.wait(TELEPORT_INIT_TIMEOUT)
         if teleportFailed then
             markFailed(nextServerId)
+            warn("Teleport failed, marking server as failed")
         end
         pendingTeleportServerId = nil
     end
