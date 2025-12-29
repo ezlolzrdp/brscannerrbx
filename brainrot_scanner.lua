@@ -92,9 +92,9 @@ pcall(queueThisOnTeleport)
 
 local _request = request or http_request or (http and http.request) or syn.request
 
-local webhookFree = "https://discord.com/api/webhooks/1452120328364101693/XSaMuA_dNl_GShp3ONOOEmNnkakZeMctfvyKXVV-hJDxgK8H6ZTUoCApFxBw4Nzbo5_8"
-local webhookLowTier = "https://discord.com/api/webhooks/1452927343785152665/DqQ4tfO4r9ieVWrGD0nbDfBI6xH-uqubjMg_Tuawy6x1LelBj6ZYVH3BUzbUnB3lyVoQ"
-local webhookHighTierFull = "https://discord.com/api/webhooks/1455295548260093954/2dkIZ5C76MR9p3tP9YVEW7B6K4z4Tio5rJaoP2H5Qb0WiW5rf7iPNzWXHWd9G4JRdPfe"
+local webhookFree = "-- https://discord.com/api/webhooks/1452120328364101693/XSaMuA_dNl_GShp3ONOOEmNnkakZeMctfvyKXVV-hJDxgK8H6ZTUoCApFxBw4Nzbo5_8"
+local webhookLowTier = "-- https://discord.com/api/webhooks/1452927343785152665/DqQ4tfO4r9ieVWrGD0nbDfBI6xH-uqubjMg_Tuawy6x1LelBj6ZYVH3BUzbUnB3lyVoQ"
+local webhookHighTierFull = "-- https://discord.com/api/webhooks/1455295548260093954/2dkIZ5C76MR9p3tP9YVEW7B6K4z4Tio5rJaoP2H5Qb0WiW5rf7iPNzWXHWd9G4JRdPfe"
 
 local multipliers = { K = 1e3, M = 1e6, B = 1e9, T = 1e12 }
 
