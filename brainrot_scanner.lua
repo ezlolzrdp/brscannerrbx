@@ -415,7 +415,7 @@ scanAndNotify = function()
                 if val then
                     print(string.format("Found: %s - %s (%.0f)", displayName, genText, val))
                     
-                    if key ~= "" and val >= 500000 then
+                    if key ~= "" and val >= 0 then
                         validBrainrots = validBrainrots + 1
                         
                         if seen[key] then
@@ -439,7 +439,7 @@ scanAndNotify = function()
         end
     end
 
-    print(string.format("\nSummary: Checked %d overheads, found %d valid brainrots (500K+)", totalChecked, validBrainrots))
+    print(string.format("\nSummary: Checked %d overheads, found %d valid brainrots", totalChecked, validBrainrots))
 
     local jobId = game.JobId
     local players = #Players:GetPlayers()
